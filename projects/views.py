@@ -78,14 +78,23 @@ def update_template(phash, data):
 
 
 def calculate_completion(requirements):
-    total = len(requirements)
+     #total = len(requirements)
+    total = 0
     enabled = 0
     for r in requirements:
-        if r.get('enabled') and r['enabled'] > 0:
-            enabled += 1
+        if r.get('disabled'): 
+                total += 1
+        if r.get('enabled'): 
+                total += 1
+                if r['enabled'] > 0:
+                    enabled +=1
         else:
             pass
-    percentage = enabled / total * 100
+    if total == 0:
+        percentage = 0
+    
+    else:
+        percentage = enabled / total * 100
     return {'total': total, 'enabled': enabled, 'percentage': '{0:.1f}'.format(percentage)}
 
 
@@ -180,6 +189,8 @@ def project_update(request):
                         r['enabled'] = 0
                         r['disabled'] = 0
                     r['note']= request.POST.get(r['req_id']+'note')   
+                    r['matury_current']= request.POST.get(r['req_id']+'matury_current')  
+                    r['matury_target']= request.POST.get(r['req_id']+'matury_target')
         p.save()
         update_template(phash, project)
         return redirect('projectsview', projectid=request.POST.get('projectid'))
