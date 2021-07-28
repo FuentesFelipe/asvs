@@ -19,6 +19,10 @@ from django.db.models import Q
 import time
 import datetime as dt
 import textwrap
+import logging
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
 
 
 def is_2fa_authenticated(user):
@@ -217,20 +221,17 @@ def generate_pdf(request, projectid):
         p.project_name, projectid).encode('utf-8')).hexdigest())
     project = load_template(phash)
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="ProjectReport.pdf"'
-    pdfmetrics.registerFont(TTFont('SantanderTextW05-Regular', "./static/fonts/SantanderText-Regular.ttf"))
-    pdfmetrics.registerFont(TTFont('SantanderTextW05-Bold', "./static/fonts/SantanderText-Bold.ttf"))
+    filename = "["+str(project['project_name'])+"] Reporte_Controles_de_Verificación [U-Payments].pdf"
+    response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+    pdfmetrics.registerFont(TTFont('TitilliumWebW05-Regular', "./static/fonts/TitilliumWeb-Regular.ttf"))
+    pdfmetrics.registerFont(TTFont('TitilliumWebW05-Bold', "./static/fonts/TitilliumWeb-Bold.ttf"))
     buffer = BytesIO()
     p = canvas.Canvas(buffer)
-    data = [[],[],[],[],[],['PROJECT REPORT']] #First eements to give a space for the logo image
+    data = [[],[],[],[],[],[str(project['project_name']) + ' - REPORTE ESTADO DE CONTROLES DE VERIFICACIÓN']] #First eements to give a space for the logo image
     data.append([" "])
     # Create the PDF object, using the BytesIO object as its "file."
     data.append(["•Project Owner:"]) 
     data.append(["   "+str(project['project_owner'])])
-    data.append(["•Project Name:"])
-    data.append(["   "+str(project['project_name'])])
-    data.append(["•Project ID:"])
-    data.append(["   "+str(project['project_id'])])
     data.append(["•Project Description:"])
     data.append(["   "+str(project['project_description'])])
     data.append(["•Project Created:"])
@@ -245,33 +246,35 @@ def generate_pdf(request, projectid):
     data.append(["Requirements:"])
     data.append([" "])
     data.append([" "])
-    for r in project['requirements']:   
-        data.append([r['chapter_name']+":"])
-        data.append([" "])
-        split_description = chunkstring("("+r['req_id']+") "+r['req_description'], 123)
-        for sd in split_description:
-            data.append([sd])
-        if r.get('enabled') and r['enabled'] > 0:
+    for r in project['requirements']:
+        if r.get('enabled') and r['enabled'] > 0 or r.get('disabled') and r['disabled'] > 0:   
+            data.append([r['chapter_name']+":"])
             data.append([" "])
-            data.append(["Complete"])
-            if (len(r['note'])>0):
-                data.append(['"'+str(r['note'])+'"'])
-            data.append([" "])
+            split_description = chunkstring("("+r['req_id']+") "+r['req_description'], 123)
+            for sd in split_description:
+                data.append([sd])
+            if r.get('enabled') and r['enabled'] > 0:
+                data.append([" "])
+                data.append(["Complete"])
+                if (len(r['note'])>0):
+                    data.append(['"'+str(r['note'])+'"'])
+                data.append([" "])
 
-        elif r.get('disabled') and r['disabled'] > 0:
-            data.append([" "])
-            data.append(["Incomplete"])
-            if (len(r['note'])>0):
-                data.append(['"'+str(r['note'])+'"'])
-            data.append([" "])
-        else:
-            data.append([" "])  
-            data.append(["N/A"])
-            if (len(r['note'])>0):
-                data.append(['"'+str(r['note'])+'"'])
-            data.append([" "])   
+            elif r.get('disabled') and r['disabled'] > 0:
+                data.append([" "])
+                data.append(["Incomplete"])
+                if (len(r['note'])>0):
+                    data.append(['"'+str(r['note'])+'"'])
+                data.append([" "])
+            else:
+                data.append([" "])  
+                data.append(["N/A"])
+                if (len(r['note'])>0):
+                    data.append(['"'+str(r['note'])+'"'])
+                data.append([" "])   
 
     if len(data) >= 40:
+        logger.info( "lendata :" + str(len(data)))
         pagenumber=0
         for x in range(len(data)+1):
             if (((x % 40 == 0) and (x > 0)) or x == len(data)):
@@ -281,17 +284,17 @@ def generate_pdf(request, projectid):
                 height = 200
                 x = 20
                 y = 90
-                canvasBackground(p,"#E3FFFA")
+                canvasBackground(p,"#ffffff")
                 if pagenumber==0:
                     detailsBackground(p,"#D3D3D3")
-                    p.drawImage('./static/img/logoicon3.jpg',227.5,730,width = 100, height = 100)
+                    p.drawImage('./static/img/u-payments-dark@1.png',227.5,730,width = 100, height = 100, mask='auto')
                 
-                p.drawImage('./static/img/logoicon3.jpg',530,40,width = 40, height =40)     
-                table_style =  TableStyle([('FONTNAME', (0,0), (0,-1), 'SantanderTextW05-Regular')])              
+                p.drawImage('./static/img/u-payments-dark@1.png',530,40,width = 40, height =40, mask='auto')     
+                table_style =  TableStyle([('FONTNAME', (0,0), (0,-1), 'TitilliumWebW05-Regular')])              
                 for row, values, in enumerate(smalldata):
                     for column, value in enumerate(values):
                         if (value=="PROJECT REPORT" or value=="Requirements:" or value=="•Project Owner:" or value=="•Project Name:" or value=="•Project ID:" or value=="•Project Description:" or value=="•Project Created:" or value=="•Project Level:"or value=="COMPLETION"):
-                            table_style.add('FONTNAME', (column, row), (column, row), 'SantanderTextW05-Bold')  
+                            table_style.add('FONTNAME', (column, row), (column, row), 'TitilliumWebW05-Bold')  
                         if (value=="COMPLETION" or value=="PROJECT REPORT"):
                             table_style.add('ALIGN', (column, row), (column, row), "CENTRE")   
                             table_style.add('ALIGN', (column, row+1), (column, row+1), "CENTRE") 
@@ -344,10 +347,10 @@ def generate_pdf(request, projectid):
         height = 200
         x = 20
         y = 767-17*len(data)
-        canvasBackground(p,"#E3FFFA")
-        detailsBackground(p,"#D3D3D3")
-        p.drawImage('./static/img/logoicon3.jpg',530,40,width = 40, height =40)
-        grid = [('FONTNAME', (0,0), (0,-1), 'SantanderTextW05-Regular')]
+        canvasBackground(p,"#FFFFFF")
+        detailsBackground(p,"#FFFFFF")
+        p.drawImage('./static/img/u-payments-dark@1.png',530,40,width = 40, height =40, mask='auto')
+        grid = [('FONTNAME', (0,0), (0,-1), 'TitilliumWebW05-Regular')]
         f = Table(data,style=TableStyle(grid))
         f.wrapOn(p, width, height)
         f.drawOn(p, x, y)       

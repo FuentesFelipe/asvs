@@ -92,7 +92,7 @@
 }
 
 .description {
-    font-family: 'SantanderTextW05-Bold',      sans-serif;
+    font-family: 'TitilliumWebW05-Bold',      sans-serif;
     font-size: 14px;
     fill: #008cba !important;
 }
@@ -102,7 +102,7 @@
 }
   
 .percent-complete {
-    font-family: 'SantanderTextW05-Bold',      sans-serif;
+    font-family: 'TitilliumWebW05-Bold',      sans-serif;
     font-size: 20px;
     fill: #008cba !important;
 }
@@ -147,7 +147,7 @@ progress::-webkit-progress-bar {
   }
 
 #wrapper{
-    font-family: 'SantanderTextW05-Regular';
+    font-family: 'TitilliumWebW05-Regular';
     height:100%
 } 
 
