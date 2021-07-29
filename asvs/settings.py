@@ -15,7 +15,7 @@ SECRET_KEY = '+*p)c@s0qatu6z6g()z)^cpj$m4@13m-ce$w^@xayj=6(_-ram'
 # If you want to run with debug (for debugging) set an OS environement variable called DEV (with any value)
 
 DEBUG = True
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'asvs.u-payments.com']
 
 
 # Application definition
@@ -129,3 +129,4 @@ LOGIN_URL = "login"
 CRISPY_TEMPLATE_PACK = "bootstrap3"
 # USE_THOUSAND_SEPARATOR = True
 AUTH_USER_MODEL = "accountauth.CustomUser" 
+DEFAULT_AUTO_FIELD='django.db.models.AutoField'

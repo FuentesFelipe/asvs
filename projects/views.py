@@ -193,8 +193,8 @@ def project_update(request):
                         r['enabled'] = 0
                         r['disabled'] = 0
                     r['note']= request.POST.get(r['req_id']+'note')   
-                    r['matury_current']= request.POST.get(r['req_id']+'matury_current')  
-                    r['matury_target']= request.POST.get(r['req_id']+'matury_target')
+                    #r['matury_current']= request.POST.get(r['req_id']+'matury_current')  
+                    #r['matury_target']= request.POST.get(r['req_id']+'matury_target')
         p.save()
         update_template(phash, project)
         return redirect('projectsview', projectid=request.POST.get('projectid'))
